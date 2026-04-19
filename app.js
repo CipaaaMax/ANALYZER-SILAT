@@ -31,13 +31,16 @@ videoInput.addEventListener("change", (e) => {
 
     scoreMerah = 0;
     scoreBiru = 0;
+    lastScoreTime = 0;
     updateScore();
+
+    document.getElementById("actionStatus").innerText = "Loading video...";
 
     video.src = URL.createObjectURL(file);
     video.muted = true;
-    video.play();
 
     video.onloadeddata = () => {
+        video.play();
         processVideo();
     };
 });
@@ -57,6 +60,8 @@ function calculateAngle(a, b, c) {
 
 // ================= PROCESS =================
 async function processVideo() {
+    document.getElementById("actionStatus").innerText = "Analisis dimulai...";
+
     const pose = new Pose({
         locateFile: (file) =>
             `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
@@ -72,7 +77,10 @@ async function processVideo() {
     pose.onResults(drawResults);
 
     async function detectFrame() {
-        if (video.paused || video.ended) return;
+        if (video.paused || video.ended) {
+            document.getElementById("actionStatus").innerText = "Analisis selesai";
+            return;
+        }
 
         await pose.send({ image: video });
         requestAnimationFrame(detectFrame);
@@ -84,7 +92,10 @@ async function processVideo() {
 // ================= DRAW =================
 function drawResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    if (video.readyState >= 2) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
 
     if (!results.poseLandmarks) {
         document.getElementById("actionStatus").innerText = "Pose tidak terdeteksi";
@@ -97,7 +108,7 @@ function drawResults(results) {
     const elbow = lm[14];
     const wrist = lm[16];
 
-    // draw skeleton kanan
+    // ===== DRAW SKELETON =====
     drawLine(shoulder, elbow);
     drawLine(elbow, wrist);
 
@@ -105,6 +116,7 @@ function drawResults(results) {
     drawPoint(elbow);
     drawPoint(wrist);
 
+    // ===== CALCULATE ANGLE =====
     let angle = calculateAngle(shoulder, elbow, wrist);
 
     ctx.fillStyle = "lime";
@@ -113,10 +125,14 @@ function drawResults(results) {
 
     let now = Date.now();
 
+    // ===== SCORING =====
     if (angle > 155 && now - lastScoreTime > 2000) {
         scoreMerah += 1;
         updateScore();
-        document.getElementById("actionStatus").innerText = "👊 Pukulan +1";
+
+        document.getElementById("actionStatus").innerText =
+            "👊 Pukulan terdeteksi +1";
+
         lastScoreTime = now;
     }
 }
