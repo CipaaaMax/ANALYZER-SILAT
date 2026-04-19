@@ -1,3 +1,15 @@
+function login() {
+    let user = document.getElementById("username").value;
+    if(user.trim() === "") {
+        alert("Masukkan username dulu");
+        return;
+    }
+
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    document.getElementById("welcomeUser").innerText = "Welcome, " + user;
+}
+
 const videoInput = document.getElementById("videoInput");
 const canvas = document.getElementById("output");
 const ctx = canvas.getContext("2d");
