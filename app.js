@@ -6,10 +6,7 @@ let video = document.createElement("video");
 
 let scoreMerah = 0;
 let scoreBiru = 0;
-
-let lastActionTime = 0;
-let actionCooldown = 2000;
-let actionLocked = false;
+let lastScoreTime = 0;
 
 // ================= LOGIN =================
 function login() {
@@ -27,7 +24,7 @@ function login() {
 
 document.getElementById("loginBtn").addEventListener("click", login);
 
-// ================= VIDEO =================
+// ================= VIDEO INPUT =================
 videoInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -37,9 +34,12 @@ videoInput.addEventListener("change", (e) => {
     updateScore();
 
     video.src = URL.createObjectURL(file);
+    video.muted = true;
     video.play();
 
-    video.addEventListener("play", processVideo);
+    video.onloadeddata = () => {
+        processVideo();
+    };
 });
 
 // ================= ANGLE =================
@@ -55,30 +55,7 @@ function calculateAngle(a, b, c) {
     return angle;
 }
 
-// ================= SKELETON =================
-function drawLine(a, b) {
-    ctx.beginPath();
-    ctx.moveTo(a.x * canvas.width, a.y * canvas.height);
-    ctx.lineTo(b.x * canvas.width, b.y * canvas.height);
-    ctx.strokeStyle = "cyan";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-}
-
-function drawPoint(p) {
-    ctx.beginPath();
-    ctx.arc(
-        p.x * canvas.width,
-        p.y * canvas.height,
-        5,
-        0,
-        Math.PI * 2
-    );
-    ctx.fillStyle = "red";
-    ctx.fill();
-}
-
-// ================= VIDEO PROCESS =================
+// ================= PROCESS =================
 async function processVideo() {
     const pose = new Pose({
         locateFile: (file) =>
@@ -88,88 +65,87 @@ async function processVideo() {
     pose.setOptions({
         modelComplexity: 1,
         smoothLandmarks: true,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.7
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
     });
 
     pose.onResults(drawResults);
 
-    async function detect() {
+    async function detectFrame() {
         if (video.paused || video.ended) return;
 
         await pose.send({ image: video });
-        requestAnimationFrame(detect);
+        requestAnimationFrame(detectFrame);
     }
 
-    detect();
+    detectFrame();
 }
 
-// ================= MAIN ANALYSIS =================
+// ================= DRAW =================
 function drawResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    if (!results.poseLandmarks) return;
+    if (!results.poseLandmarks) {
+        document.getElementById("actionStatus").innerText = "Pose tidak terdeteksi";
+        return;
+    }
 
     const lm = results.poseLandmarks;
 
-    let shoulderR = lm[12];
-    let elbowR = lm[14];
-    let wristR = lm[16];
+    const shoulder = lm[12];
+    const elbow = lm[14];
+    const wrist = lm[16];
 
-    let shoulderL = lm[11];
-    let elbowL = lm[13];
-    let wristL = lm[15];
+    // draw skeleton kanan
+    drawLine(shoulder, elbow);
+    drawLine(elbow, wrist);
 
-    let angleR = calculateAngle(shoulderR, elbowR, wristR);
-    let angleL = calculateAngle(shoulderL, elbowL, wristL);
+    drawPoint(shoulder);
+    drawPoint(elbow);
+    drawPoint(wrist);
 
-    // ===== DRAW SKELETON =====
-    drawLine(shoulderR, elbowR);
-    drawLine(elbowR, wristR);
+    let angle = calculateAngle(shoulder, elbow, wrist);
 
-    drawLine(shoulderL, elbowL);
-    drawLine(elbowL, wristL);
-
-    drawPoint(shoulderR);
-    drawPoint(elbowR);
-    drawPoint(wristR);
-
-    drawPoint(shoulderL);
-    drawPoint(elbowL);
-    drawPoint(wristL);
-
-    // ===== UI ANGLE =====
     ctx.fillStyle = "lime";
     ctx.font = "28px Arial";
-    ctx.fillText("Sudut Kanan: " + Math.round(angleR), 20, 40);
-    ctx.fillText("Sudut Kiri: " + Math.round(angleL), 20, 80);
+    ctx.fillText("Sudut: " + Math.round(angle), 20, 40);
 
-    // ===== SCORING FIX =====
     let now = Date.now();
 
-    if (!actionLocked && now - lastActionTime > actionCooldown) {
-        if (angleR > 160 || angleL > 160) {
-            scoreMerah += 1;
-            showStatus("👊 Pukulan +1");
-            updateScore();
-
-            actionLocked = true;
-            lastActionTime = now;
-
-            setTimeout(() => {
-                actionLocked = false;
-            }, actionCooldown);
-        }
+    if (angle > 155 && now - lastScoreTime > 2000) {
+        scoreMerah += 1;
+        updateScore();
+        document.getElementById("actionStatus").innerText = "👊 Pukulan +1";
+        lastScoreTime = now;
     }
+}
+
+// ================= DRAW TOOLS =================
+function drawLine(a, b) {
+    ctx.beginPath();
+    ctx.moveTo(a.x * canvas.width, a.y * canvas.height);
+    ctx.lineTo(b.x * canvas.width, b.y * canvas.height);
+    ctx.strokeStyle = "cyan";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+}
+
+function drawPoint(p) {
+    ctx.beginPath();
+    ctx.arc(
+        p.x * canvas.width,
+        p.y * canvas.height,
+        6,
+        0,
+        Math.PI * 2
+    );
+    ctx.fillStyle = "red";
+    ctx.fill();
 }
 
 // ================= UI =================
 function updateScore() {
     document.getElementById("scoreMerah").innerText = scoreMerah;
     document.getElementById("scoreBiru").innerText = scoreBiru;
-}
-
-function showStatus(text) {
-    document.getElementById("actionStatus").innerText = text;
 }
