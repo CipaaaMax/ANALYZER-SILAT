@@ -6,7 +6,10 @@ let video = document.createElement("video");
 
 let scoreMerah = 0;
 let scoreBiru = 0;
+
 let lastActionTime = 0;
+let actionCooldown = 2000;
+let actionLocked = false;
 
 // ================= LOGIN =================
 function login() {
@@ -39,20 +42,43 @@ videoInput.addEventListener("change", (e) => {
     video.addEventListener("play", processVideo);
 });
 
-// ================= ANGLE FUNCTION =================
+// ================= ANGLE =================
 function calculateAngle(a, b, c) {
     let radians =
         Math.atan2(c.y - b.y, c.x - b.x) -
         Math.atan2(a.y - b.y, a.x - b.x);
 
-    let angle = Math.abs(radians * 180.0 / Math.PI);
+    let angle = Math.abs(radians * 180 / Math.PI);
 
     if (angle > 180) angle = 360 - angle;
 
     return angle;
 }
 
-// ================= PROCESS VIDEO =================
+// ================= SKELETON =================
+function drawLine(a, b) {
+    ctx.beginPath();
+    ctx.moveTo(a.x * canvas.width, a.y * canvas.height);
+    ctx.lineTo(b.x * canvas.width, b.y * canvas.height);
+    ctx.strokeStyle = "cyan";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+}
+
+function drawPoint(p) {
+    ctx.beginPath();
+    ctx.arc(
+        p.x * canvas.width,
+        p.y * canvas.height,
+        5,
+        0,
+        Math.PI * 2
+    );
+    ctx.fillStyle = "red";
+    ctx.fill();
+}
+
+// ================= VIDEO PROCESS =================
 async function processVideo() {
     const pose = new Pose({
         locateFile: (file) =>
@@ -62,8 +88,8 @@ async function processVideo() {
     pose.setOptions({
         modelComplexity: 1,
         smoothLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
     });
 
     pose.onResults(drawResults);
@@ -78,7 +104,7 @@ async function processVideo() {
     detect();
 }
 
-// ================= DRAW RESULT =================
+// ================= MAIN ANALYSIS =================
 function drawResults(results) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -86,47 +112,55 @@ function drawResults(results) {
     if (!results.poseLandmarks) return;
 
     const lm = results.poseLandmarks;
+
+    let shoulderR = lm[12];
+    let elbowR = lm[14];
+    let wristR = lm[16];
+
+    let shoulderL = lm[11];
+    let elbowL = lm[13];
+    let wristL = lm[15];
+
+    let angleR = calculateAngle(shoulderR, elbowR, wristR);
+    let angleL = calculateAngle(shoulderL, elbowL, wristL);
+
+    // ===== DRAW SKELETON =====
+    drawLine(shoulderR, elbowR);
+    drawLine(elbowR, wristR);
+
+    drawLine(shoulderL, elbowL);
+    drawLine(elbowL, wristL);
+
+    drawPoint(shoulderR);
+    drawPoint(elbowR);
+    drawPoint(wristR);
+
+    drawPoint(shoulderL);
+    drawPoint(elbowL);
+    drawPoint(wristL);
+
+    // ===== UI ANGLE =====
+    ctx.fillStyle = "lime";
+    ctx.font = "28px Arial";
+    ctx.fillText("Sudut Kanan: " + Math.round(angleR), 20, 40);
+    ctx.fillText("Sudut Kiri: " + Math.round(angleL), 20, 80);
+
+    // ===== SCORING FIX =====
     let now = Date.now();
 
-    if (now - lastActionTime < 1500) return;
+    if (!actionLocked && now - lastActionTime > actionCooldown) {
+        if (angleR > 160 || angleL > 160) {
+            scoreMerah += 1;
+            showStatus("👊 Pukulan +1");
+            updateScore();
 
-    // ===== PUKULAN =====
-    const shoulder = lm[12];
-    const elbow = lm[14];
-    const wrist = lm[16];
+            actionLocked = true;
+            lastActionTime = now;
 
-    let armAngle = calculateAngle(shoulder, elbow, wrist);
-
-    if (armAngle > 155) {
-        scoreMerah += 1;
-        showStatus("👊 Pukulan +1");
-        updateScore();
-        lastActionTime = now;
-        return;
-    }
-
-    // ===== TENDANGAN =====
-    const hip = lm[24];
-    const knee = lm[26];
-    const ankle = lm[28];
-
-    let legAngle = calculateAngle(hip, knee, ankle);
-
-    if (legAngle > 160 && ankle.y < knee.y) {
-        scoreMerah += 2;
-        showStatus("🦵 Tendangan +2");
-        updateScore();
-        lastActionTime = now;
-        return;
-    }
-
-    // ===== BANTINGAN =====
-    if (Math.abs(shoulder.y - hip.y) > 0.25) {
-        scoreMerah += 3;
-        showStatus("🤼 Bantingan +3");
-        updateScore();
-        lastActionTime = now;
-        return;
+            setTimeout(() => {
+                actionLocked = false;
+            }, actionCooldown);
+        }
     }
 }
 
