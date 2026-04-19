@@ -1,13 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Smart Analyzer Silat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Silat Analyzer</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>SMART SILAT ANALYZER</h1>
 
-    <input type="file" id="videoInput" accept="video/*">
-    <canvas id="output" width="640" height="480"></canvas>
+    <div class="login-box" id="loginPage">
+        <h1>🥋 SMART SILAT AI</h1>
+        <input type="text" id="username" placeholder="Masukkan Username">
+        <button onclick="login()">LOGIN</button>
+    </div>
+
+    <div class="dashboard hidden" id="dashboard">
+        <header>
+            <h1>SMART SILAT ANALYZER</h1>
+            <p id="welcomeUser"></p>
+        </header>
+
+        <div class="card">
+            <h2>Upload Video Silat</h2>
+            <input type="file" id="videoInput" accept="video/*">
+        </div>
+
+        <div class="card">
+            <h2>Live Detection</h2>
+            <canvas id="output" width="800" height="500"></canvas>
+        </div>
+
+        <div class="card stats">
+            <h2>Total Punch</h2>
+            <p id="punchCount">0</p>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
     <script src="app.js"></script>
