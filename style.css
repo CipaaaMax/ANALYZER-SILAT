@@ -1,0 +1,51 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
+}
+
+.login-box, .dashboard {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px;
+    text-align: center;
+}
+
+.login-box {
+    margin-top: 150px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    box-shadow: 0 0 20px cyan;
+    padding: 40px;
+}
+
+input, button {
+    padding: 12px;
+    margin: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+button {
+    background: cyan;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.card {
+    background: rgba(255,255,255,0.05);
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 0 15px cyan;
+}
+
+.stats p {
+    font-size: 40px;
+    color: cyan;
+}
+
+.hidden {
+    display: none;
+}
