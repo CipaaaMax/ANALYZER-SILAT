@@ -1,61 +1,101 @@
-body {
+*{
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #020617);
-    color: white;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.login-box, .dashboard {
-    max-width: 900px;
-    margin: auto;
+body{
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 30px;
+}
+
+.container{
+    width: 100%;
+    max-width: 1000px;
     text-align: center;
 }
 
-.login-box {
-    margin-top: 150px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    box-shadow: 0 0 20px cyan;
-    padding: 40px;
+h1{
+    font-size: 42px;
+    margin-bottom: 10px;
 }
 
-input, button {
-    padding: 12px;
-    margin: 10px;
-    border-radius: 10px;
+.subtitle{
+    color: #94a3b8;
+    margin-bottom: 30px;
+}
+
+.input-box{
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.input-box input{
+    flex: 1;
+    padding: 15px;
     border: none;
+    border-radius: 12px;
     font-size: 16px;
 }
 
-button {
-    background: cyan;
-    font-weight: bold;
+.input-box button{
+    padding: 15px 25px;
+    border: none;
+    border-radius: 12px;
+    background: #2563eb;
+    color: white;
     cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
 }
 
-button:hover {
-    transform: scale(1.05);
+.input-box button:hover{
+    background: #1d4ed8;
 }
 
-.card {
-    background: rgba(255,255,255,0.05);
-    margin: 20px 0;
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 0 15px cyan;
-}
-
-.stats p {
-    font-size: 40px;
-    color: cyan;
-}
-
-.hidden {
-    display: none;
-}
-
-canvas {
+.video-container{
     width: 100%;
+    height: 500px;
+    margin-bottom: 30px;
+}
+
+.video-container iframe{
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+}
+
+.result-box{
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 20px;
+}
+
+.stats{
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card{
+    background: #334155;
+    padding: 20px;
     border-radius: 15px;
+}
+
+.card h3{
+    margin-bottom: 10px;
+}
+
+.card p{
+    font-size: 28px;
+    font-weight: bold;
 }
