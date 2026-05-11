@@ -1,167 +1,54 @@
-const videoInput = document.getElementById("videoInput");
-const canvas = document.getElementById("output");
-const ctx = canvas.getContext("2d");
+const analyzeBtn = document.getElementById("analyzeBtn");
 
-let video = document.createElement("video");
+analyzeBtn.addEventListener("click", () => {
 
-let scoreMerah = 0;
-let scoreBiru = 0;
-let lastScoreTime = 0;
+    const youtubeLink = document.getElementById("youtubeLink").value;
 
-// ================= LOGIN =================
-function login() {
-    let user = document.getElementById("username").value;
-
-    if (user.trim() === "") {
-        alert("Masukkan username dulu");
+    if(youtubeLink === ""){
+        alert("Please paste YouTube link!");
         return;
     }
 
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
-    document.getElementById("welcomeUser").innerText = "Welcome, " + user;
-}
+    const videoId = getYoutubeVideoId(youtubeLink);
 
-document.getElementById("loginBtn").addEventListener("click", login);
+    if(!videoId){
+        alert("Invalid YouTube Link!");
+        return;
+    }
 
-// ================= VIDEO INPUT =================
-videoInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const iframe = document.getElementById("videoFrame");
 
-    scoreMerah = 0;
-    scoreBiru = 0;
-    lastScoreTime = 0;
-    updateScore();
+    iframe.src = `https://www.youtube.com/embed/${videoId}`;
 
-    document.getElementById("actionStatus").innerText = "Loading video...";
+    runFakeAnalysis();
 
-    video.src = URL.createObjectURL(file);
-    video.muted = true;
-
-    video.onloadeddata = () => {
-        video.play();
-        processVideo();
-    };
 });
 
-// ================= ANGLE =================
-function calculateAngle(a, b, c) {
-    let radians =
-        Math.atan2(c.y - b.y, c.x - b.x) -
-        Math.atan2(a.y - b.y, a.x - b.x);
 
-    let angle = Math.abs(radians * 180 / Math.PI);
+function getYoutubeVideoId(url){
 
-    if (angle > 180) angle = 360 - angle;
+    const regExp = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/;
 
-    return angle;
+    const match = url.match(regExp);
+
+    return match ? match[1] : null;
 }
 
-// ================= PROCESS =================
-async function processVideo() {
-    document.getElementById("actionStatus").innerText = "Analisis dimulai...";
 
-    const pose = new Pose({
-        locateFile: (file) =>
-            `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-    });
+function runFakeAnalysis(){
 
-    pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
+    const kickCount = Math.floor(Math.random() * 50);
+    const punchCount = Math.floor(Math.random() * 40);
 
-    pose.onResults(drawResults);
+    const movements = ["Low", "Medium", "High"];
 
-    async function detectFrame() {
-        if (video.paused || video.ended) {
-            document.getElementById("actionStatus").innerText = "Analisis selesai";
-            return;
-        }
+    const movementLevel =
+        movements[Math.floor(Math.random() * movements.length)];
 
-        await pose.send({ image: video });
-        requestAnimationFrame(detectFrame);
-    }
+    document.getElementById("kickCount").innerText = kickCount;
 
-    detectFrame();
-}
+    document.getElementById("punchCount").innerText = punchCount;
 
-// ================= DRAW =================
-function drawResults(results) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById("movementLevel").innerText = movementLevel;
 
-    if (video.readyState >= 2) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    }
-
-    if (!results.poseLandmarks) {
-        document.getElementById("actionStatus").innerText = "Pose tidak terdeteksi";
-        return;
-    }
-
-    const lm = results.poseLandmarks;
-
-    const shoulder = lm[12];
-    const elbow = lm[14];
-    const wrist = lm[16];
-
-    // ===== DRAW SKELETON =====
-    drawLine(shoulder, elbow);
-    drawLine(elbow, wrist);
-
-    drawPoint(shoulder);
-    drawPoint(elbow);
-    drawPoint(wrist);
-
-    // ===== CALCULATE ANGLE =====
-    let angle = calculateAngle(shoulder, elbow, wrist);
-
-    ctx.fillStyle = "lime";
-    ctx.font = "28px Arial";
-    ctx.fillText("Sudut: " + Math.round(angle), 20, 40);
-
-    let now = Date.now();
-
-    // ===== SCORING =====
-    if (angle > 155 && now - lastScoreTime > 2000) {
-        scoreMerah += 1;
-        updateScore();
-
-        document.getElementById("actionStatus").innerText =
-            "👊 Pukulan terdeteksi +1";
-
-        lastScoreTime = now;
-    }
-}
-
-// ================= DRAW TOOLS =================
-function drawLine(a, b) {
-    ctx.beginPath();
-    ctx.moveTo(a.x * canvas.width, a.y * canvas.height);
-    ctx.lineTo(b.x * canvas.width, b.y * canvas.height);
-    ctx.strokeStyle = "cyan";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-}
-
-function drawPoint(p) {
-    ctx.beginPath();
-    ctx.arc(
-        p.x * canvas.width,
-        p.y * canvas.height,
-        6,
-        0,
-        Math.PI * 2
-    );
-    ctx.fillStyle = "red";
-    ctx.fill();
-}
-
-// ================= UI =================
-function updateScore() {
-    document.getElementById("scoreMerah").innerText = scoreMerah;
-    document.getElementById("scoreBiru").innerText = scoreBiru;
 }
