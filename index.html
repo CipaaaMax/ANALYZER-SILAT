@@ -8,37 +8,63 @@
 </head>
 <body>
 
-    <!-- LOGIN PAGE -->
-    <div class="login-box" id="loginPage">
-        <h1>🥋 SMART SILAT AI</h1>
-        <input type="text" id="username" placeholder="Masukkan Username">
-        <button id="loginBtn">LOGIN</button>
+    <div class="container">
+
+        <h1>SMART SILAT ANALYZER</h1>
+
+        <p class="subtitle">
+            Analyze Silat Match Videos from YouTube
+        </p>
+
+        <div class="input-box">
+            <input 
+                type="text" 
+                id="youtubeLink" 
+                placeholder="Paste YouTube Link Here..."
+            >
+
+            <button id="analyzeBtn">
+                Analyze
+            </button>
+        </div>
+
+        <div class="video-container">
+            <iframe 
+                id="videoFrame"
+                src=""
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+        </div>
+
+        <div class="result-box" id="resultBox">
+
+            <h2>Match Analysis</h2>
+
+            <div class="stats">
+
+                <div class="card">
+                    <h3>Kicks</h3>
+                    <p id="kickCount">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Punches</h3>
+                    <p id="punchCount">0</p>
+                </div>
+
+                <div class="card">
+                    <h3>Movement</h3>
+                    <p id="movementLevel">Low</p>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <!-- DASHBOARD -->
-    <div class="dashboard hidden" id="dashboard">
-        <header>
-            <h1>SMART SILAT ANALYZER</h1>
-            <p id="welcomeUser"></p>
-        </header>
-
-        <div class="card">
-            <h2>Upload Video Silat</h2>
-            <input type="file" id="videoInput" accept="video/*">
-        </div>
-
-        <div class="card">
-            <h2>Live Detection</h2>
-            <canvas id="output" width="800" height="500"></canvas>
-        </div>
-
-        <div class="card stats">
-            <h2>Total Punch</h2>
-            <p id="punchCount">0</p>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
     <script src="app.js"></script>
+
 </body>
 </html>
